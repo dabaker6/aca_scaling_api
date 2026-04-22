@@ -1,4 +1,4 @@
-﻿using aca_scaling_api.Configuration;
+﻿using aca_scaling_worker.Configuration;
 using Azure.Messaging.ServiceBus;
 using Microsoft.Extensions.Options;
 

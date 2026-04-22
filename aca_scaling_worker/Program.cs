@@ -1,15 +1,13 @@
-using aca_scaling_api.Configuration;
+using aca_scaling_worker.Configuration;
 using aca_scaling_worker;
 using Azure.Identity;
 using Azure.Messaging.ServiceBus;
 
 var builder = Host.CreateApplicationBuilder(args);
 
-
 builder.Services
     .AddOptions<ServiceBusSettings>()
-    .Bind(builder.Configuration.GetSection(ServiceBusSettings.SectionName))
-    .ValidateDataAnnotations()
+    .Bind(builder.Configuration.GetSection(ServiceBusSettings.SectionName))    
     .ValidateOnStart();
 
 builder.Services.AddSingleton(sp =>
