@@ -1,36 +1,34 @@
 ﻿using aca_scaling_api.Contracts;
-using aca_scaling_api.Services.ServiceBus;
-using aca_scaling_api.Utils;
+using aca_scaling_api.Services.ContainerApps;
 using aca_scaling_api.Validation;
 using Azure;
 using FluentValidation;
 using Microsoft.AspNetCore.Mvc;
-using System.ComponentModel.DataAnnotations;
 
 namespace aca_scaling_api.Endpoints
 {
-    public static class SendMessagesEndpoint
+    public static class GetReplicaCountEndpoint
     {
         private const string AzureEndpoint = "Replica Count";
         private const string TaskName = "GetReplicaCount";
-        public static IEndpointRouteBuilder MapSendMessageEndpoint(this IEndpointRouteBuilder endpoints)
+        public static IEndpointRouteBuilder MapGetReplicaCountEndpoint(this IEndpointRouteBuilder endpoints)
         {
-            var group = endpoints.MapGroup("/api/v1/send-message");
+            var group = endpoints.MapGroup("/api/v1/replicas");
 
-            group.MapGet("/{messageCount}",GenerateMessages);
+            group.MapGet("/{revisionName}", GetReplicaCount);
 
             return endpoints;
         }
 
-        private static async Task<IResult> GenerateMessages(
-            int messageCount,
-            [FromServices] IQueueService queueService,
-            [FromServices] IValidator<SendMessageRequest> validator,
-            ILoggerFactory loggerFactory,
+        private static async Task<IResult> GetReplicaCount(
+            string revisionName,
+            [FromServices] IContainerAppsService containerAppsService,
+            [FromServices] ILoggerFactory loggerFactory,
+            [FromServices] IValidator<ReplicaCountRequest> validator,
             HttpContext httpContext,
             CancellationToken cancellationToken)
         {
-            var request = new SendMessageRequest(messageCount);
+            var request = new ReplicaCountRequest(revisionName);
             var validationResult = await validator.ValidateAsync(request, cancellationToken).ConfigureAwait(false);
 
             if (!validationResult.IsValid)
@@ -40,23 +38,18 @@ namespace aca_scaling_api.Endpoints
                 .ToDictionary(
                     group => group.Key,
                     group => group.Select(error => error.ErrorMessage).ToArray());
-
+                
                 return Results.Json(
-                    new ApiError("BadRequest", "Invalid request parameters.", CorrelationId: httpContext.GetCorrelationId(), details),
+                    new ApiError("BadRequest", "Invalid request parameters.", CorrelationId: httpContext.GetCorrelationId(),details),
                     statusCode: StatusCodes.Status400BadRequest
                 );
             }
 
-            var generatedMessages = await MessageGenerator.GenerateMessagesToQueue(httpContext.GetCorrelationId());
-
-            try
+            try 
             {
-                foreach (var generatedMessage in generatedMessages)
-                {
-                    await queueService.SendMessageAsync(System.Text.Json.JsonSerializer.Serialize(generatedMessage));
-                }
+                var replicaCount = await containerAppsService.GetReplicaCount(revisionName, cancellationToken);
 
-                return Results.Accepted(generatedMessages.Count().ToString());
+                return Results.Ok(replicaCount);
             }
             catch (RequestFailedException ex)
             {

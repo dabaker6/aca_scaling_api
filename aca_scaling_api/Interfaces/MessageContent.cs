@@ -2,7 +2,9 @@
 {
     public sealed record MessageContent
     {
-        public string workId { get; set; } = string.Empty;
-        public string jobId { get; set; } = string.Empty;
+        public string WorkId { get; set; } = string.Empty;
+        public string JobId { get; set; } = string.Empty;
+
+        public string CorrelationId {  get; set; } = string.Empty;
     }
 }

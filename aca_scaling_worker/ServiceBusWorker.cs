@@ -8,7 +8,7 @@ namespace aca_scaling_worker
     {
         private readonly ServiceBusClient _client;
         private readonly ServiceBusSettings _settings;
-        private ServiceBusProcessor _processor;
+        private ServiceBusProcessor? _processor;
         private ILogger<ServiceBusWorker> _logger;
 
         public ServiceBusWorker(ServiceBusClient client, IOptions<ServiceBusSettings> settings, ILogger<ServiceBusWorker> logger)
