@@ -1,0 +1,7 @@
+MSBUILD : error MSB1008: Only one project can be specified.
+    Full command line: 'C:\Program Files\dotnet\sdk\10.0.300-preview.0.26177.108\MSBuild.exe -maxcpucount --verbosity:m -tlp:default=auto --property:VSTestNoLogo=true --property:NuGetInteractive=false --property:VSTestVerbosity=normal --property:VSTestArtifactsProcessingMode=collect --property:VSTestSessionCorrelationId=43368_673fbb80-6456-4e16-b572-b7a5052e9e70 --restoreProperty:VSTestNoLogo=true --restoreProperty:NuGetInteractive=false --restoreProperty:VSTestVerbosity=normal --restoreProperty:VSTestArtifactsProcessingMode=collect --restoreProperty:VSTestSessionCorrelationId=43368_673fbb80-6456-4e16-b572-b7a5052e9e70 --restoreProperty:EnableDefaultCompileItems=false --restoreProperty:EnableDefaultEmbeddedResourceItems=false --restoreProperty:EnableDefaultNoneItems=false --target:VSTest --verbosity:normal --nologo -nodereuse:false ./aca_scaling_api.Tests/aca_scaling_api.Tests.csproj ./aca_scaling_worker.Tests/aca_scaling_worker.Tests.csproj -restore -distributedlogger:Microsoft.DotNet.Cli.Commands.MSBuild.MSBuildLogger,C:\Program Files\dotnet\sdk\10.0.300-preview.0.26177.108\dotnet.dll*Microsoft.DotNet.Cli.Commands.MSBuild.MSBuildForwardingLogger,C:\Program Files\dotnet\sdk\10.0.300-preview.0.26177.108\dotnet.dll'
+  Switches appended by response files:
+Switch: ./aca_scaling_worker.Tests/aca_scaling_worker.Tests.csproj
+
+For switch syntax, type "MSBuild -help"
+

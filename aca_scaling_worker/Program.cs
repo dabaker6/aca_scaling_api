@@ -18,6 +18,7 @@ builder.Services.AddSingleton(sp =>
     new DefaultAzureCredential());
 });
 
+builder.Services.AddSingleton<IMessageHandler, MessageHandler>();
 builder.Services.AddHostedService<ServiceBusWorker>();
 
 var host = builder.Build();

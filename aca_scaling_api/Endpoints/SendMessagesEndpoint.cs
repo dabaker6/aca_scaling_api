@@ -1,6 +1,6 @@
 ﻿using aca_scaling_api.Contracts;
+using aca_scaling_api.Services;
 using aca_scaling_api.Services.ServiceBus;
-using aca_scaling_api.Utils;
 using aca_scaling_api.Validation;
 using Azure;
 using FluentValidation;
@@ -25,6 +25,7 @@ namespace aca_scaling_api.Endpoints
         private static async Task<IResult> GenerateMessages(
             int messageCount,
             [FromServices] IQueueService queueService,
+            [FromServices] IMessageGenerator messageGenerator,
             [FromServices] IValidator<SendMessageRequest> validator,
             ILoggerFactory loggerFactory,
             HttpContext httpContext,
@@ -47,7 +48,7 @@ namespace aca_scaling_api.Endpoints
                 );
             }
 
-            var generatedMessages = await MessageGenerator.GenerateMessagesToQueue(httpContext.GetCorrelationId());
+            var generatedMessages = await messageGenerator.GenerateMessagesToQueueAsync(messageCount, httpContext.GetCorrelationId());
 
             try
             {

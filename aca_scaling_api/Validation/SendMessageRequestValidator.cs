@@ -2,7 +2,7 @@
 
 namespace aca_scaling_api.Validation
 {
-    internal sealed class SendMessageRequestValidator: AbstractValidator<SendMessageRequest>
+    public sealed class SendMessageRequestValidator: AbstractValidator<SendMessageRequest>
     {
         public SendMessageRequestValidator() 
         {

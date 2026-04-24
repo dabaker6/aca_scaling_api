@@ -6,6 +6,6 @@
 
         public Task GetScaleRules(CancellationToken cancellationToken);
 
-        public Task<string> GetRevisionName(CancellationToken cancellationToken);
+        public Task<string?> GetRevisionName(CancellationToken cancellationToken);
     }
 }

@@ -27,7 +27,7 @@ namespace aca_scaling_api.Services.ContainerApps
             return _activeRevision?.GetContainerAppReplicas().Count() ?? 0;
         }
 
-        public async Task<string> GetRevisionName(CancellationToken cancellationToken = default)
+        public async Task<string?> GetRevisionName(CancellationToken cancellationToken = default)
         {
             await GetActiveRevision(cancellationToken);
 

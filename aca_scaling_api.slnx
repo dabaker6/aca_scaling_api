@@ -1,4 +1,6 @@
 <Solution>
+  <Project Path="aca_scaling_api.Tests/aca_scaling_api.Tests.csproj" />
   <Project Path="aca_scaling_api/aca_scaling_api.csproj" />
+  <Project Path="aca_scaling_worker.Tests/aca_scaling_worker.Tests.csproj" />
   <Project Path="aca_scaling_worker/aca_scaling_worker.csproj" />
 </Solution>

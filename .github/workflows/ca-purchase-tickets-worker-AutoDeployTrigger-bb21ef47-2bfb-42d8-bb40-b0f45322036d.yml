@@ -4,19 +4,19 @@ name: Trigger auto deployment for ca-purchase-tickets-worker
 on:
   # Automatically trigger it when detected changes in repo
   push:
-    branches: 
+    branches:
       [ master ]
     paths:
     - '**'
     - '.github/workflows/ca-purchase-tickets-worker-AutoDeployTrigger-bb21ef47-2bfb-42d8-bb40-b0f45322036d.yml'
 
-  # Allow manual trigger 
-  workflow_dispatch:      
+  # Allow manual trigger
+  workflow_dispatch:
 
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
-    permissions: 
+    permissions:
       id-token: write #This is required for requesting the OIDC JWT Token
       contents: read #Required when GH token is used to authenticate with private repo
 
@@ -34,16 +34,11 @@ jobs:
       - name: Build and push container image to registry
         uses: azure/container-apps-deploy-action@v2
         with:
-          appSourcePath: ${{ github.workspace }}
-          _dockerfilePathKey_: _dockerfilePath_
-          _targetLabelKey_: _targetLabel_
+          appSourcePath: ${{ github.workspace }}/aca_scaling_worker
+          dockerfilePath: Dockerfile
           registryUrl: dev246personalwebsite.azurecr.io
           registryUsername: ${{ secrets.CAPURCHASETICKETSWORKER_REGISTRY_USERNAME }}
           registryPassword: ${{ secrets.CAPURCHASETICKETSWORKER_REGISTRY_PASSWORD }}
           containerAppName: ca-purchase-tickets-worker
           resourceGroup: rg-dev-personal-website
           imageToBuild: dev246personalwebsite.azurecr.io/ca-purchase-tickets-worker:${{ github.sha }}
-          _buildArgumentsKey_: |
-            _buildArgumentsValues_
-
-

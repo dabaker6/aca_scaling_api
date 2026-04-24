@@ -1,6 +1,7 @@
 using aca_scaling_api.Configuration;
 using aca_scaling_api.Contracts;
 using aca_scaling_api.Endpoints;
+using aca_scaling_api.Services;
 using aca_scaling_api.Services.ContainerApps;
 using aca_scaling_api.Services.ServiceBus;
 using aca_scaling_api.Validation;
@@ -56,6 +57,7 @@ builder.Services.AddSingleton(sp =>
 builder.Services.AddValidatorsFromAssemblyContaining<ReplicaCountRequestValidator>(includeInternalTypes: true);
 builder.Services.AddSingleton<IQueueService, QueueService>();
 builder.Services.AddSingleton<IContainerAppsService, ContainerAppsService>();
+builder.Services.AddSingleton<IMessageGenerator, MessageGeneratorService>();
 
 var app = builder.Build();
 

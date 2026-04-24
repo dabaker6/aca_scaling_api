@@ -8,13 +8,23 @@ namespace aca_scaling_worker
     {
         private readonly ServiceBusClient _client;
         private readonly ServiceBusSettings _settings;
+        private readonly IMessageHandler _messageHandler;
         private ServiceBusProcessor? _processor;
-        private ILogger<ServiceBusWorker> _logger;
+        private readonly ILogger<ServiceBusWorker> _logger;
 
-        public ServiceBusWorker(ServiceBusClient client, IOptions<ServiceBusSettings> settings, ILogger<ServiceBusWorker> logger)
+        public ServiceBusWorker(
+            ServiceBusClient client,
+            IOptions<ServiceBusSettings> settings,
+            IMessageHandler messageHandler,
+            ILogger<ServiceBusWorker> logger)
         {
+            ArgumentNullException.ThrowIfNull(client);
+            ArgumentNullException.ThrowIfNull(settings);
+            ArgumentNullException.ThrowIfNull(messageHandler);
+            ArgumentNullException.ThrowIfNull(logger);
             _client = client;
             _settings = settings.Value;
+            _messageHandler = messageHandler;
             _logger = logger;
         }
 
@@ -26,30 +36,13 @@ namespace aca_scaling_worker
                 AutoCompleteMessages = false
             });
 
-            _processor.ProcessMessageAsync += HandleMessageAsync;
+            _processor.ProcessMessageAsync += _messageHandler.HandleMessageAsync;
             _processor.ProcessErrorAsync += HandleErrorAsync;
 
             await _processor.StartProcessingAsync(stoppingToken);
 
             // Keep the service alive
             await Task.Delay(Timeout.Infinite, stoppingToken);
-        }
-
-        private async Task HandleMessageAsync(ProcessMessageEventArgs args)
-        {
-            var body = args.Message.Body.ToString();
-
-            try
-            {
-                // your logic here
-                _logger.LogInformation("Processing message: {MessageBody}", body);
-                await Task.Delay(1000); // Simulate work
-                await args.CompleteMessageAsync(args.Message);
-            }
-            catch
-            {
-                await args.AbandonMessageAsync(args.Message);
-            }
         }
 
         private Task HandleErrorAsync(ProcessErrorEventArgs args)
