@@ -23,7 +23,7 @@ namespace aca_scaling_api.Services.ContainerApps
             _armClient = armClient;
         }
         public async Task<int> GetReplicaCount(string revisionName, CancellationToken cancellationToken)
-        {
+        {            
             return _activeRevision?.GetContainerAppReplicas().Count() ?? 0;
         }
 
@@ -34,15 +34,18 @@ namespace aca_scaling_api.Services.ContainerApps
             return _activeRevision?.Data.Name ?? throw new InvalidOperationException("No active revision found.");
         }
 
-        public Task GetScaleRules(CancellationToken cancellationToken)
+        public async Task GetScaleRules(CancellationToken cancellationToken)
         {
+            //ContainerAppResource containerAppResource = await GetContainerApp(cancellationToken);
+
+            //var scale = containerAppResource.Data.Template.Scale;
+
             throw new NotImplementedException();
         }
 
         private async Task GetActiveRevision(CancellationToken cancellationToken)
-        {
-            ResourceIdentifier id = ContainerAppResource.CreateResourceIdentifier(_settings.SubscriptionId, _settings.ResourceGroup, _settings.ContainerAppName);
-            ContainerAppResource containerAppResource = _armClient.GetContainerAppResource(id);
+        {            
+            ContainerAppResource containerAppResource = await GetContainerApp(cancellationToken);
             ContainerAppRevisionCollection containerAppRevisionCollection = containerAppResource.GetContainerAppRevisions();
 
             await foreach (var revision in containerAppRevisionCollection.GetAllAsync(null, cancellationToken))
@@ -53,6 +56,13 @@ namespace aca_scaling_api.Services.ContainerApps
                     return;
                 }
             }            
+        }
+
+        private async Task<ContainerAppResource> GetContainerApp(CancellationToken cancellationToken)
+        {
+            ResourceIdentifier id = ContainerAppResource.CreateResourceIdentifier(_settings.SubscriptionId, _settings.ResourceGroup, _settings.ContainerAppName);
+            ContainerAppResource containerAppResource = _armClient.GetContainerAppResource(id);
+            return await containerAppResource.GetAsync(cancellationToken);
         }
     }
 }

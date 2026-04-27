@@ -12,16 +12,15 @@ EXPOSE 8081
 FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
 ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
-COPY ["aca_scaling_api/aca_scaling_api.csproj", "aca_scaling_api/"]
-RUN dotnet restore "./aca_scaling_api/aca_scaling_api.csproj"
+COPY aca_scaling_api.csproj .
+RUN dotnet restore "aca_scaling_api.csproj"
 COPY . .
-WORKDIR "/src/aca_scaling_api"
-RUN dotnet build "./aca_scaling_api.csproj" -c $BUILD_CONFIGURATION -o /app/build
+RUN dotnet build "aca_scaling_api.csproj" -c $BUILD_CONFIGURATION -o /app/build
 
 # This stage is used to publish the service project to be copied to the final stage
 FROM build AS publish
 ARG BUILD_CONFIGURATION=Release
-RUN dotnet publish "./aca_scaling_api.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
+RUN dotnet publish "aca_scaling_api.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
 
 # This stage is used in production or when running from VS in regular mode (Default when not using the Debug configuration)
 FROM base AS final

@@ -1,5 +1,6 @@
 using aca_scaling_api.Interfaces;
 using aca_scaling_api.Services;
+using aca_scaling_api.Services.MessageGenerator;
 using aca_scaling_api.Services.ServiceBus;
 using aca_scaling_api.Validation;
 using FluentAssertions;
@@ -30,12 +31,11 @@ namespace aca_scaling_api.Tests.Endpoints
                 new MessageContent { WorkId = "1", JobId = "purchasetickets", CorrelationId = "test" }
             };
 
-            foreach (var message in messages)
-            {
-                await mockQueueService.Object.SendMessageAsync(System.Text.Json.JsonSerializer.Serialize(message));
-            }
 
-            mockQueueService.Verify(x => x.SendMessageAsync(It.IsAny<string>()), Times.Once);
+            await mockQueueService.Object.SendMessageAsync(messages);
+
+
+            mockQueueService.Verify(x => x.SendMessageAsync(It.IsAny<IEnumerable<MessageContent>>()), Times.Once);
         }
 
         [Fact]

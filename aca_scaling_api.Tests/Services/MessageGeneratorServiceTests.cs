@@ -1,4 +1,4 @@
-using aca_scaling_api.Services;
+using aca_scaling_api.Services.MessageGenerator;
 using FluentAssertions;
 using Xunit;
 

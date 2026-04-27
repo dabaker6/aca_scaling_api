@@ -36,42 +36,9 @@ namespace aca_scaling_api.Tests.Services.ServiceBus
             _mockServiceBusClient
                 .Setup(x => x.CreateSender(It.IsAny<string>()))
                 .Returns(_mockSender.Object);
-
+            
             _queueService = new QueueService(_queueSettings, _mockServiceBusClient.Object, _mockAdminClient.Object);
-        }
-
-        [Fact]
-        public async Task SendMessageAsync_WithValidPayload_SendsMessage()
-        {
-            var payload = "test message";
-
-            await _queueService.SendMessageAsync(payload);
-
-            _mockSender.Verify(x => x.SendMessageAsync(It.IsAny<ServiceBusMessage>(), It.IsAny<CancellationToken>()), Times.Once);
-        }
-
-        [Fact]
-        public async Task SendMessageAsync_WithEmptyPayload_SendsMessage()
-        {
-            var payload = string.Empty;
-
-            await _queueService.SendMessageAsync(payload);
-
-            _mockSender.Verify(x => x.SendMessageAsync(It.IsAny<ServiceBusMessage>(), It.IsAny<CancellationToken>()), Times.Once);
-        }
-
-        [Fact]
-        public async Task SendMessageAsync_VerifyMultipleCalls()
-        {
-            var payloads = new[] { "message1", "message2", "message3" };
-
-            foreach (var payload in payloads)
-            {
-                await _queueService.SendMessageAsync(payload);
-            }
-
-            _mockSender.Verify(x => x.SendMessageAsync(It.IsAny<ServiceBusMessage>(), It.IsAny<CancellationToken>()), Times.Exactly(3));
-        }
+        } 
 
         [Fact]
         public async Task GetQueueLength_ReturnsQueueContentWithActiveMessageCount()

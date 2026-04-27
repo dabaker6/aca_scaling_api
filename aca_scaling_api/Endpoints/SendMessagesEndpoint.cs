@@ -1,5 +1,6 @@
 ﻿using aca_scaling_api.Contracts;
-using aca_scaling_api.Services;
+using aca_scaling_api.Interfaces;
+using aca_scaling_api.Services.MessageGenerator;
 using aca_scaling_api.Services.ServiceBus;
 using aca_scaling_api.Validation;
 using Azure;
@@ -48,14 +49,12 @@ namespace aca_scaling_api.Endpoints
                 );
             }
 
-            var generatedMessages = await messageGenerator.GenerateMessagesToQueueAsync(messageCount, httpContext.GetCorrelationId());
+            IEnumerable<MessageContent> generatedMessages = await messageGenerator.GenerateMessagesToQueueAsync(messageCount, httpContext.GetCorrelationId());
 
             try
             {
-                foreach (var generatedMessage in generatedMessages)
-                {
-                    await queueService.SendMessageAsync(System.Text.Json.JsonSerializer.Serialize(generatedMessage));
-                }
+
+                await queueService.SendMessageAsync(generatedMessages);
 
                 return Results.Accepted(generatedMessages.Count().ToString());
             }

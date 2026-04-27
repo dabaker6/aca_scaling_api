@@ -1,6 +1,6 @@
 using aca_scaling_api.Interfaces;
-using aca_scaling_api.Services;
 using aca_scaling_api.Services.ContainerApps;
+using aca_scaling_api.Services.MessageGenerator;
 using aca_scaling_api.Services.ServiceBus;
 using Azure.Messaging.ServiceBus;
 using Azure.Messaging.ServiceBus.Administration;

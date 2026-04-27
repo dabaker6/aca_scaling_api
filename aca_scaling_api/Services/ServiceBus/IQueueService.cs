@@ -4,8 +4,8 @@ namespace aca_scaling_api.Services.ServiceBus
 {
     public interface IQueueService
     {
-        Task SendMessageAsync(string payload);
+        Task SendMessageAsync(IEnumerable<MessageContent> messages, CancellationToken cancellationToken = default);
 
-        Task<QueueContent> GetQueueLength();
+        Task<QueueContent> GetQueueLength(CancellationToken cancellationToken = default);
     }
 }

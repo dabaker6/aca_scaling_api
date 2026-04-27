@@ -1,6 +1,6 @@
 using aca_scaling_api.Interfaces;
 
-namespace aca_scaling_api.Services
+namespace aca_scaling_api.Services.MessageGenerator
 {
     public interface IMessageGenerator
     {
