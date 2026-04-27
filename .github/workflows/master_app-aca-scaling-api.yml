@@ -7,57 +7,54 @@ on:
   push:
     branches:
       - master
-  workflow_dispatch:
+ 
+permissions:
+      id-token: write 
+      contents: read #This is required for actions/checkout
 
+env:
+  ACR_NAME: ${{secrets.PERSONAL_WEBSITE_ACR_NAME}}
+  IMAGE_NAME: ${{secrets.ACASCALING_API_IMAGE_NAME}}
+  IMAGE_TAG: ${{github.sha}}
+  WEBAPP_NAME: ${{secrets.WEBAPP_NAME}}
+  RESOURCE_GROUP: ${{secrets.RESOURCE_GROUP}}
+  
 jobs:
   build:
     runs-on: ubuntu-latest
-    permissions:
-      contents: read #This is required for actions/checkout
-
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v2
-
-      - name: Log in to container registry
-        uses: docker/login-action@v2
-        with:
-          registry: dev246personalwebsite.azurecr.io/
-          username: ${{ secrets.AZUREAPPSERVICE_CONTAINERUSERNAME_EA53DF1A5E1B4880B58DD8915E5CAB99 }}
-          password: ${{ secrets.AZUREAPPSERVICE_CONTAINERPASSWORD_7D75ED50B2C94EF280E5837805B3CC02 }}
-
-      - name: Build and push container image to registry
-        uses: docker/build-push-action@v3
-        with:
-          context: .
-          push: true
-          tags: dev246personalwebsite.azurecr.io/${{ secrets.AZUREAPPSERVICE_CONTAINERUSERNAME_EA53DF1A5E1B4880B58DD8915E5CAB99 }}/acascaling.api:${{ github.sha }}
-          file: ./Dockerfile
-
-  deploy:
-    runs-on: ubuntu-latest
-    permissions:
-      id-token: write #This is required for requesting the JWT
-      contents: read #This is required for actions/checkout
-
-    needs: build
     
     steps:
-      
-      - name: Login to Azure
+      - name: Checkout repo
+        uses: actions/checkout@v4  
+
+      - name: Azure Login
         uses: azure/login@v2
         with:
-          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_AA7B716D8F434B7DA471AFF19CAE9C78 }}
-          tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_81350D5302274ABA8428EC4BAD31D1B1 }}
-          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_E4920877079C448A925CD6EAFEAACAD7 }}
+          client-id: ${{ secrets.AZURE_CLIENT_ID_GITHUB_OIDC_DEPLOY }}
+          tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_A93B16FA6F1048DB90DD6CED2B84B175 }}
+          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_E51090B53AE94C9997E5FBE88B4764A4 }}
+      
+      - name: ACR Login
+        run: |
+          az acr login --name $ACR_NAME
+                
+      - name: Build and push image
+        run: |
+          IMAGE="$ACR_NAME.azurecr.io/$IMAGE_NAME:$IMAGE_TAG"
+          docker build -t $IMAGE .
+          docker push $IMAGE     
+      
+      - name: Deploy Web App container
+        run: |
+          IMAGE="$ACR_NAME.azurecr.io/$IMAGE_NAME:$IMAGE_TAG"
 
-      - name: Deploy to Azure Web App
-        id: deploy-to-webapp
-        uses: azure/webapps-deploy@v2
-        with:
-          app-name: 'app-aca-scaling-api'
-          slot-name: 'Production'
-          images: 'dev246personalwebsite.azurecr.io/${{ secrets.AZUREAPPSERVICE_CONTAINERUSERNAME_EA53DF1A5E1B4880B58DD8915E5CAB99 }}/acascaling.api:${{ github.sha }}'
-          
+          az webapp config container set \
+            --name $WEBAPP_NAME \
+            --resource-group $RESOURCE_GROUP \
+            --docker-custom-image-name $IMAGE
+
+      - name: Restart Web App
+        run: |
+          az webapp restart \
+            --name $WEBAPP_NAME \
+            --resource-group $RESOURCE_GROUP     
