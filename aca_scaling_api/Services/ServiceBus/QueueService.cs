@@ -1,8 +1,8 @@
 ﻿using aca_scaling_api.Configuration;
 using aca_scaling_api.Interfaces;
+using aca_scaling_api.Utils;
 using Azure.Messaging.ServiceBus;
 using Azure.Messaging.ServiceBus.Administration;
-using Microsoft.Azure.Amqp.Framing;
 using Microsoft.Extensions.Options;
 
 namespace aca_scaling_api.Services.ServiceBus
@@ -29,53 +29,69 @@ namespace aca_scaling_api.Services.ServiceBus
 
         }
 
-        public async Task SendMessageAsync(IEnumerable<MessageContent> generatedMessages, CancellationToken cancellationToken = default)
+        public async Task SendMessageAsync(MessageBatch generatedMessages, CancellationToken cancellationToken = default)
         {
-
-            Queue<ServiceBusMessage> messages = new();
-
-            foreach (var generatedMessage in generatedMessages)
+            if (generatedMessages.Messages == null || !generatedMessages.Messages.Any())
             {
-                messages.Enqueue(new ServiceBusMessage(System.Text.Json.JsonSerializer.Serialize(generatedMessage)));
+                throw new ArgumentException("Generated messages cannot be null or empty.");
             }
 
-            //total number of messages to be sent to the Service Bus queue, used for logging and exception messages
-            int messageCount = messages.Count;
-            
-            // while all messages are not sent to the Service Bus queue
-            while (messages.Count > 0)
+            foreach (var messageGroup in generatedMessages.Messages)
             {
-                // start a new batch
-                using ServiceBusMessageBatch messageBatch = await _sender.CreateMessageBatchAsync();
-                Guid batchId = Guid.NewGuid();
-
-                ServiceBusMessage message = messages.Peek();
-                message.ApplicationProperties.Add("BatchId", batchId);
-
-                // add the first message to the batch
-                if (messageBatch.TryAddMessage(message))
+                
+                if (messageGroup == null || !messageGroup.Any())
                 {
-                    // dequeue the message from the .NET queue once the message is added to the batch
-                    messages.Dequeue();
-                }
-                else
-                {
-                    // if the first message can't fit, then it is too large for the batch
-                    throw new Exception($"Message {messageCount - messages.Count} is too large and cannot be sent.");
+                    throw new ArgumentException("Message groups cannot be null or empty.");
                 }
 
-                // add as many messages as possible to the current batch
-                while (messages.Count > 0 && messageBatch.TryAddMessage(messages.Peek()))
+                Queue<ServiceBusMessage> messages = new();
+
+                foreach (var generatedMessage in messageGroup)
                 {
-                    // dequeue the message from the .NET queue as it has been added to the batch
-                    messages.Dequeue();
+                    messages.Enqueue(new ServiceBusMessage(System.Text.Json.JsonSerializer.Serialize(generatedMessage)));
                 }
 
-                // now, send the batch
-                await _sender.SendMessagesAsync(messageBatch);
+                //total number of messages to be sent to the Service Bus queue, used for logging and exception messages
+                int messageCount = messages.Count;
 
-                // if there are any remaining messages in the .NET queue, the while loop repeats
-            }            
+                // while all messages are not sent to the Service Bus queue
+                while (messages.Count > 0)
+                {
+
+                    // start a new batch
+                    using ServiceBusMessageBatch messageBatch = await _sender.CreateMessageBatchAsync();
+                    Guid batchId = Guid.NewGuid();
+
+                    ServiceBusMessage message = messages.Peek();
+                    message.ApplicationProperties.Add("BatchId", batchId);
+
+                    // add the first message to the batch
+                    if (messageBatch.TryAddMessage(message))
+                    {
+                        // dequeue the message from the .NET queue once the message is added to the batch
+                        messages.Dequeue();
+                    }
+                    else
+                    {
+                        // if the first message can't fit, then it is too large for the batch
+                        throw new Exception($"Message {messageCount - messages.Count} is too large and cannot be sent.");
+                    }
+
+                    // add as many messages as possible to the current batch
+                    while (messages.Count > 0 && messageBatch.TryAddMessage(messages.Peek()))
+                    {
+                        // dequeue the message from the .NET queue as it has been added to the batch
+                        messages.Dequeue();
+                    }
+
+                    // now, send the batch
+                    await _sender.SendMessagesAsync(messageBatch);
+
+                    // if there are any remaining messages in the .NET queue, the while loop repeats
+                }
+                // add delay to replicate real world scenario where messages are generated at different times, and to avoid overwhelming the Service Bus queue with messages
+                await Task.Delay(_settings.ProcessingTime,cancellationToken);
+            }
         }
     }
 }

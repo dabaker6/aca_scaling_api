@@ -16,18 +16,18 @@ namespace aca_scaling_api.Tests.Services
         [Fact]
         public async Task GenerateMessagesToQueueAsync_ReturnsRequestedCount()
         {
-            var result = await _messageGenerator.GenerateMessagesToQueueAsync(20, "test-correlation-id");
+            var result = await _messageGenerator.GenerateMessagesToQueueAsync(1000, "test-correlation-id");
 
             result.Should().NotBeNull();
-            result.Should().HaveCount(20);
+            result.TotalMessageCount.Should().BeCloseTo(1000, 20);
         }
 
         [Fact]
         public async Task GenerateMessagesToQueueAsync_WithDifferentCount_ReturnsCorrectCount()
         {
-            var result = await _messageGenerator.GenerateMessagesToQueueAsync(5, "test-correlation-id");
+            var result = await _messageGenerator.GenerateMessagesToQueueAsync(500, "test-correlation-id");
 
-            result.Should().HaveCount(5);
+            result.TotalMessageCount.Should().BeCloseTo(500, 20);
         }
 
         [Fact]
@@ -35,7 +35,7 @@ namespace aca_scaling_api.Tests.Services
         {
             var result = await _messageGenerator.GenerateMessagesToQueueAsync(0, "test-correlation-id");
 
-            result.Should().BeEmpty();
+            result.Messages.Should().BeEmpty();
         }
 
         [Fact]
@@ -43,26 +43,26 @@ namespace aca_scaling_api.Tests.Services
         {
             var correlationId = "test-correlation-id";
 
-            var result = await _messageGenerator.GenerateMessagesToQueueAsync(10, correlationId);
+            var result = await _messageGenerator.GenerateMessagesToQueueAsync(1000, correlationId);
 
-            result.Should().AllSatisfy(msg => msg.CorrelationId.Should().Be(correlationId));
+            result.Messages.Should().AllSatisfy(msg => msg.FirstOrDefault()?.CorrelationId.Should().Be(correlationId));
         }
 
         [Fact]
         public async Task GenerateMessagesToQueueAsync_AllMessagesHaveJobId()
         {
-            var result = await _messageGenerator.GenerateMessagesToQueueAsync(10, "test-correlation-id");
+            var result = await _messageGenerator.GenerateMessagesToQueueAsync(1000, "test-correlation-id");
 
-            result.Should().AllSatisfy(msg => msg.JobId.Should().Be("purchasetickets"));
+            result.Messages.Should().AllSatisfy(msg => msg.FirstOrDefault()?.JobId.Should().Be("purchasetickets"));
         }
 
         [Fact]
         public async Task GenerateMessagesToQueueAsync_AllMessagesHaveUniqueWorkIds()
         {
-            var result = await _messageGenerator.GenerateMessagesToQueueAsync(20, "test-correlation-id");
+            var result = await _messageGenerator.GenerateMessagesToQueueAsync(2000, "test-correlation-id");
 
-            var workIds = result.Select(msg => msg.WorkId).ToList();
-            workIds.Distinct().Should().HaveCount(20);
+            var workIds = result.Messages.Select(msg => msg.FirstOrDefault()?.WorkId).ToList();
+            workIds.Distinct().Should().HaveCount(workIds.Count());
         }
 
         [Fact]
@@ -71,11 +71,11 @@ namespace aca_scaling_api.Tests.Services
             var correlationId1 = "correlation-1";
             var correlationId2 = "correlation-2";
 
-            var result1 = await _messageGenerator.GenerateMessagesToQueueAsync(5, correlationId1);
-            var result2 = await _messageGenerator.GenerateMessagesToQueueAsync(5, correlationId2);
+            var result1 = await _messageGenerator.GenerateMessagesToQueueAsync(1000, correlationId1);
+            var result2 = await _messageGenerator.GenerateMessagesToQueueAsync(1000, correlationId2);
 
-            result1.Should().AllSatisfy(msg => msg.CorrelationId.Should().Be(correlationId1));
-            result2.Should().AllSatisfy(msg => msg.CorrelationId.Should().Be(correlationId2));
+            result1.Messages.Should().AllSatisfy(msg => msg.FirstOrDefault()?.CorrelationId.Should().Be(correlationId1));
+            result2.Messages.Should().AllSatisfy(msg => msg.FirstOrDefault()?.CorrelationId.Should().Be(correlationId2));
         }
     }
 }

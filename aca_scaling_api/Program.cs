@@ -1,7 +1,9 @@
 using aca_scaling_api.Configuration;
 using aca_scaling_api.Contracts;
 using aca_scaling_api.Endpoints;
+using aca_scaling_api.Services.BackgroundTaskQueue;
 using aca_scaling_api.Services.ContainerApps;
+using aca_scaling_api.Services.HostedBackgroundService;
 using aca_scaling_api.Services.MessageGenerator;
 using aca_scaling_api.Services.ServiceBus;
 using aca_scaling_api.Validation;
@@ -58,6 +60,8 @@ builder.Services.AddValidatorsFromAssemblyContaining<ReplicaCountRequestValidato
 builder.Services.AddSingleton<IQueueService, QueueService>();
 builder.Services.AddSingleton<IContainerAppsService, ContainerAppsService>();
 builder.Services.AddSingleton<IMessageGenerator, MessageGeneratorService>();
+builder.Services.AddSingleton<IBackgroundTaskQueue, BackgroundTaskQueue>();
+builder.Services.AddHostedService<QueuedHostedService>();
 
 var app = builder.Build();
 

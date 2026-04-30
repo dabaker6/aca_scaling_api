@@ -1,12 +1,13 @@
 ﻿using aca_scaling_api.Contracts;
 using aca_scaling_api.Interfaces;
+using aca_scaling_api.Services.BackgroundTaskQueue;
 using aca_scaling_api.Services.MessageGenerator;
 using aca_scaling_api.Services.ServiceBus;
+using aca_scaling_api.Utils;
 using aca_scaling_api.Validation;
 using Azure;
 using FluentValidation;
 using Microsoft.AspNetCore.Mvc;
-using System.ComponentModel.DataAnnotations;
 
 namespace aca_scaling_api.Endpoints
 {
@@ -28,6 +29,7 @@ namespace aca_scaling_api.Endpoints
             [FromServices] IQueueService queueService,
             [FromServices] IMessageGenerator messageGenerator,
             [FromServices] IValidator<SendMessageRequest> validator,
+            [FromServices] IBackgroundTaskQueue backgroundTaskQueue,
             ILoggerFactory loggerFactory,
             HttpContext httpContext,
             CancellationToken cancellationToken)
@@ -62,11 +64,14 @@ namespace aca_scaling_api.Endpoints
                     );
                 }
 
-                IEnumerable<MessageContent> generatedMessages = await messageGenerator.GenerateMessagesToQueueAsync(messageCount, httpContext.GetCorrelationId());
+                MessageBatch generatedMessages = await messageGenerator.GenerateMessagesToQueueAsync(messageCount, httpContext.GetCorrelationId());
 
-                await queueService.SendMessageAsync(generatedMessages);
+                await backgroundTaskQueue.QueueAsync(async cancellationToken =>
+                {
+                    await queueService.SendMessageAsync(generatedMessages, cancellationToken);
+                });                
 
-                return Results.Accepted(generatedMessages.Count().ToString());
+                return Results.Accepted(generatedMessages.TotalMessageCount.ToString());
             }
             catch (RequestFailedException ex)
             {

@@ -1,7 +1,9 @@
 using aca_scaling_worker;
+using aca_scaling_worker.Configuration;
 using Azure.Messaging.ServiceBus;
 using FluentAssertions;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Moq;
 using Xunit;
 
@@ -11,11 +13,22 @@ namespace aca_scaling_worker.Tests
     {
         private readonly Mock<ILogger<MessageHandler>> _mockLogger;
         private readonly MessageHandler _messageHandler;
+        private readonly IOptions<ServiceBusSettings> _settings;
+
+
 
         public MessageHandlerTests()
         {
+            var settings = new ServiceBusSettings
+            {
+                FullyQualifiedNamespace = "test-namespace.servicebus.windows.net",
+                QueueName = "test-queue",
+                ProcessingTime = 500
+            };
+
+            _settings = Options.Create(settings);
             _mockLogger = new Mock<ILogger<MessageHandler>>();
-            _messageHandler = new MessageHandler(_mockLogger.Object);
+            _messageHandler = new MessageHandler(_mockLogger.Object,_settings);
         }
 
         private static (ProcessMessageEventArgs args, Mock<ServiceBusReceiver> receiver) CreateArgs(string body = "test message")

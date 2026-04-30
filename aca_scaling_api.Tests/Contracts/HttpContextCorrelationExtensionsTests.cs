@@ -7,6 +7,7 @@ namespace aca_scaling_api.Tests.Contracts
 {
     public class HttpContextCorrelationExtensionsTests
     {
+
         [Fact]
         public void GetCorrelationId_WhenCorrelationIdStoredInItems_ReturnsIt()
         {
