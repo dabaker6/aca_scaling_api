@@ -48,6 +48,8 @@ paths:
               $ref: '#/components/headers/CorrelationIdResponse'
         '400':
           $ref: '#/components/responses/BadRequest'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
         '500':
           $ref: '#/components/responses/InternalServerError'
 
@@ -217,6 +219,20 @@ components:
             details:
               MessageCount:
                 - "Message Count must be less than 5000"
+      headers:
+        X-Correlation-Id:
+          $ref: '#/components/headers/CorrelationIdResponse'
+
+    TooManyRequests:
+      description: Queue is not empty; a previous batch is still being processed.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiError'
+          example:
+            code: Conflict
+            message: "Queue is not empty. Current active message count: 42."
+            correlationId: 00-abc123def456-ghijkl789012-00
       headers:
         X-Correlation-Id:
           $ref: '#/components/headers/CorrelationIdResponse'

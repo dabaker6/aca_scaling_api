@@ -48,11 +48,21 @@ namespace aca_scaling_api.Endpoints
                     statusCode: StatusCodes.Status400BadRequest
                 );
             }
-
-            IEnumerable<MessageContent> generatedMessages = await messageGenerator.GenerateMessagesToQueueAsync(messageCount, httpContext.GetCorrelationId());
-
+                        
             try
             {
+                QueueContent queueLength = await queueService.GetQueueLength();
+                
+                _  = int.TryParse(queueLength.ActiveMessageCount, out int activeMessageCount);
+                if (activeMessageCount != 0)
+                {
+                    return Results.Json(
+                        new ApiError("Conflict", $"Queue is not empty. Current active message count: {queueLength.ActiveMessageCount}.", CorrelationId: httpContext.GetCorrelationId()),
+                        statusCode: StatusCodes.Status429TooManyRequests
+                    );
+                }
+
+                IEnumerable<MessageContent> generatedMessages = await messageGenerator.GenerateMessagesToQueueAsync(messageCount, httpContext.GetCorrelationId());
 
                 await queueService.SendMessageAsync(generatedMessages);
 
