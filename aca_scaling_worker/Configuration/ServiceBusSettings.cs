@@ -10,5 +10,8 @@ namespace aca_scaling_worker.Configuration
 
         [Required]
         public string QueueName { get; init; } = string.Empty;
+
+        [Required]
+        public int ProcessingTime { get; init; }
     }
 }
