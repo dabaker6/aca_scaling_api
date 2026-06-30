@@ -23,7 +23,7 @@ jobs:
       contents: read #Required when GH token is used to authenticate with private repo
     env:
           ACR_NAME: ${{ secrets.PERSONAL_WEBSITE_ACR_NAME }}
-          RESOURCE_GROUP: ${{ secrets.PERSONAL_WEBSITE_RG }}
+          RESOURCE_GROUP: ${{ secrets.RESOURCE_GROUP }}
           CONTAINER_APP_NAME: ${{ secrets.CONTAINER_APP_NAME }}
           IMAGE_TAG: v1.${{ github.sha }}
     steps:
