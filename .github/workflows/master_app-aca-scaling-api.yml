@@ -15,12 +15,12 @@ permissions:
       contents: read #This is required for actions/checkout
 
 env:
-  ACR_NAME: ${{secrets.PERSONAL_WEBSITE_ACR_NAME}}
-  IMAGE_NAME: ${{secrets.ACASCALING_API_IMAGE_NAME}}
-  IMAGE_TAG: ${{github.sha}}
-  WEBAPP_NAME: ${{secrets.WEBAPP_NAME}}
-  RESOURCE_GROUP: ${{secrets.RESOURCE_GROUP}}
-  
+  ACR_NAME: ${{ secrets.PERSONAL_WEBSITE_ACR_NAME }}
+  IMAGE_NAME: ${{ secrets.ACASCALING_API_IMAGE_NAME }}
+  IMAGE_TAG: ${{ github.sha }}
+  WEBAPP_NAME: ${{ secrets.WEBAPP_NAME }}
+  RESOURCE_GROUP: ${{ secrets.RESOURCE_GROUP }}
+  IMAGE: "${{ secrets.ACASCALING_API_IMAGE_NAME }}:v1.${{ github.sha }}"
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -32,16 +32,13 @@ jobs:
       - name: Azure Login
         uses: azure/login@v2
         with:
-          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_AA7B716D8F434B7DA471AFF19CAE9C78 }}
-          tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_81350D5302274ABA8428EC4BAD31D1B1 }}
-          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_E4920877079C448A925CD6EAFEAACAD7 }}
-      
-      - name: ACR Login
-        run: |
-          az acr login --name $ACR_NAME
-                
+          client-id: ${{ secrets.AZURE_GITHUB_OIDC }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
       - name: Build and push image
         run: |
+          az acr login --name $ACR_NAME
           IMAGE="$ACR_NAME.azurecr.io/$IMAGE_NAME:$IMAGE_TAG"
           docker build -t $IMAGE ./aca_scaling_api
           docker push $IMAGE     
