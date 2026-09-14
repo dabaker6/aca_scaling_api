@@ -363,3 +363,4 @@ MigrationBackup/
 FodyWeavers.xsd
 /aca_scaling_worker/appsettings.json
 /aca_scaling_worker/appsettings.Development.json
+/aca_scaling_api/appsettings.Development.json
