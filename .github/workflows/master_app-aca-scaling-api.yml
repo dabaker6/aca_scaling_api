@@ -19,10 +19,6 @@ env:
       REGISTRY: ghcr.io
       IMAGE_NAME: ${{ github.repository }}-api      
       IMAGE_TAG: v1.${{ github.sha }}
-      
-      WEBAPP_NAME: ${{ secrets.WEBAPP_NAME }}
-      RESOURCE_GROUP: ${{ secrets.RESOURCE_GROUP }}
-      IMAGE: "${{ secrets.ACASCALING_API_IMAGE_NAME }}:v1.${{ github.sha }}"
 
 jobs:
   build:
