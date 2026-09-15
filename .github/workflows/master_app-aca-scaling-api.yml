@@ -69,5 +69,5 @@ jobs:
       - name: Restart Web App
         run: |
           az webapp restart \
-            --name $WEBAPP_NAME \
-            --resource-group $RESOURCE_GROUP     
+            --name ${{ secrets.WEBAPP_NAME }} \
+            --resource-group ${{ secrets.RESOURCE_GROUP }}     
