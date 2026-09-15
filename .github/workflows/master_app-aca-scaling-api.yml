@@ -34,7 +34,7 @@ jobs:
 
       - name: Construct image reference
         id: img #id allowing use later in flow
-        run: echo "ref=${REGISTRY}${IMAGE_NAME@L}:${IMAGE_TAG}" >> "$GITHUB_OUTPUT" #prints out and writes image reference to use later. Github repo could contain upper case letters, @L used to force lowercase
+        run: echo "ref=${REGISTRY}/${IMAGE_NAME@L}:${IMAGE_TAG}" >> "$GITHUB_OUTPUT" #prints out and writes image reference to use later. Github repo could contain upper case letters, @L used to force lowercase
 
       - name: Log in to GHCR
         uses: docker/login-action@v3
@@ -46,15 +46,19 @@ jobs:
       - name: Setup buildx
         uses: docker/setup-buildx-action@v3
 
+      - name: Image metadata # generates sensible tags and labels, labels include the source which is used to link the package to the repo
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ghcr.io/${{ github.repository }}-api
+
       - name: Build and push
         uses: docker/build-push-action@v6
         with:
           context: ./aca_scaling_api
           push: true
-          tags: |
-            ${{ steps.img.outputs.ref }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
           
       - name: Azure Login
         uses: azure/login@v2
