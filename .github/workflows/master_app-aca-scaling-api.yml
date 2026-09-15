@@ -34,7 +34,7 @@ jobs:
 
       - name: Construct image reference
         id: img #id allowing use later in flow
-        run: ech "ref=${REGISTRY}${IMAGE_NAME@L}:${IMAGE_TAG}" >> "$GITHUB_OUTPUT" #prints out and writes image reference to use later. Github repo could contain upper case letters, @L used to force lowercase
+        run: echo "ref=${REGISTRY}${IMAGE_NAME@L}:${IMAGE_TAG}" >> "$GITHUB_OUTPUT" #prints out and writes image reference to use later. Github repo could contain upper case letters, @L used to force lowercase
 
       - name: Log in to GHCR
         uses: docker/login-action@v3
