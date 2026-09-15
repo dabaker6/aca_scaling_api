@@ -70,7 +70,7 @@ jobs:
       - name: Point Web App at the GHCR image
         run: |
           az webapp config container set \
-            --name ${{ secrets.WEBAPP_NAME }}
+            --name ${{ secrets.WEBAPP_NAME }} \
             --resource-group "${{ secrets.RESOURCE_GROUP }}" \
             --container-image-name "${{ steps.img.outputs.ref }}"
 
