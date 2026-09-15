@@ -11,24 +11,51 @@ on:
       - api-*
  
 permissions:
-      id-token: write 
+      id-token: write #Azure OIDC login
       contents: read #This is required for actions/checkout
+      packages: write #push to GHCR
 
-jobs:
-  build:
-    runs-on: ubuntu-latest
-    env:
-      ACR_NAME: ${{ secrets.PERSONAL_WEBSITE_ACR_NAME }}
-      IMAGE_NAME: ${{ secrets.ACASCALING_API_IMAGE_NAME }}
-      IMAGE_TAG: ${{ github.sha }}
+env:
+      REGISTRY: ghcr.io
+      IMAGE_NAME: ${{ github.repository }}-api      
+      IMAGE_TAG: v1.${{ github.sha }}
+      
       WEBAPP_NAME: ${{ secrets.WEBAPP_NAME }}
       RESOURCE_GROUP: ${{ secrets.RESOURCE_GROUP }}
       IMAGE: "${{ secrets.ACASCALING_API_IMAGE_NAME }}:v1.${{ github.sha }}"
+
+jobs:
+  build:
+    runs-on: ubuntu-latest    
    
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4  
 
+      - name: Construct image reference
+        id: img #id allowing use later in flow
+        run: ech "ref=${REGISTRY}${IMAGE_NAME@L}:${IMAGE_TAG}" >> "$GITHUB_OUTPUT" #prints out and writes image reference to use later. Github repo could contain upper case letters, @L used to force lowercase
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Setup buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build and push
+        uses: docker/build-push-action@v6
+        with:
+          context: ./aca_scaling_api
+          push: true
+          tags: |
+            ${{ steps.img.outputs.ref }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          
       - name: Azure Login
         uses: azure/login@v2
         with:
@@ -36,21 +63,12 @@ jobs:
           tenant-id: ${{ secrets.AZURE_TENANT_ID }}
           subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
 
-      - name: Build and push image
+      - name: Point Web App at the GHCR image
         run: |
-          az acr login --name $ACR_NAME
-          IMAGE="$ACR_NAME.azurecr.io/$IMAGE_NAME:$IMAGE_TAG"
-          docker build -t $IMAGE ./aca_scaling_api
-          docker push $IMAGE     
-      
-      - name: Deploy Web App container
-        run: |
-          IMAGE="$ACR_NAME.azurecr.io/$IMAGE_NAME:$IMAGE_TAG"
-
           az webapp config container set \
-            --name $WEBAPP_NAME \
-            --resource-group $RESOURCE_GROUP \
-            --docker-custom-image-name $IMAGE
+            --name ${{ secrets.WEBAPP_NAME }}
+            --resource-group "${{ secrets.RESOURCE_GROUP }}" \
+            --container-image-name "${{ steps.img.outputs.ref }}"
 
       - name: Restart Web App
         run: |
