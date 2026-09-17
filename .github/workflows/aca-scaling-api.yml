@@ -51,7 +51,9 @@ jobs:
           labels: |
             org.opencontainers.image.source=https://github.com/${{ github.repository }}
             org.opencontainers.image.revision=${{ github.sha }}
-            
+          cache-from: type=gha, scope=api
+          cache-to: type=gha, mode=max, scope=api
+          
       - name: Azure Login
         uses: azure/login@v2
         with:
