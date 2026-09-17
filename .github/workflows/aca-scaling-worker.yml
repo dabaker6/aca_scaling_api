@@ -1,4 +1,4 @@
-name: Trigger auto deployment for ca-purchase-tickets-worker
+name: aca-scaling-worker - build and deploy to container app
 
 # When this action will be executed
 on:
