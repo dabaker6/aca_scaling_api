@@ -17,9 +17,7 @@ permissions:
       packages: write #push to GHCR
       
 env:
-      REGISTRY: ghcr.io
-
-      ACR_NAME: ${{ secrets.PERSONAL_WEBSITE_ACR_NAME }}
+      REGISTRY: ghcr.io      
       IMAGE_NAME: ${{ github.repository }}-worker
       IMAGE_TAG: v1.${{ github.sha }}
 
@@ -54,6 +52,8 @@ jobs:
           labels: |
             org.opencontainers.image.source=https://github.com/${{ github.repository }}
             org.opencontainers.image.revision=${{ github.sha }}
+          cache-from: type=gha, scope=worker
+          cache-to: type=gha, mode=max, scope=worker
             
       - name: Azure Login
         uses: azure/login@v2
